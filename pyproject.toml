@@ -1,0 +1,30 @@
+[project]
+name = "mcp-code-mode"
+version = "0.1.0"
+description = "Code Execution MCP Server using DSpy and MCP"
+readme = "README.md"
+authors = [{ name = "Codex" }]
+requires-python = ">=3.11,<3.13"
+dependencies = [
+    "fastmcp>=2.0.0",
+    "dspy-ai>=2.5.0",
+    "mcp>=1.0.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.4.0",
+    "pytest-asyncio>=0.21.0",
+    "pytest-cov>=4.1.0",
+    "black>=23.0.0",
+    "ruff>=0.1.0",
+    "mypy>=1.7.0"
+]
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+packages = ["mcp_code_mode"]
+
+[build-system]
+requires = ["setuptools>=68.0"]
+build-backend = "setuptools.build_meta"

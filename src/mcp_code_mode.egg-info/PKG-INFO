@@ -1,0 +1,44 @@
+Metadata-Version: 2.4
+Name: mcp-code-mode
+Version: 0.1.0
+Summary: Code Execution MCP Server using DSpy and MCP
+Author: Codex
+Requires-Python: <3.13,>=3.11
+Description-Content-Type: text/markdown
+Requires-Dist: fastmcp>=2.0.0
+Requires-Dist: dspy-ai>=2.5.0
+Requires-Dist: mcp>=1.0.0
+Provides-Extra: dev
+Requires-Dist: pytest>=7.4.0; extra == "dev"
+Requires-Dist: pytest-asyncio>=0.21.0; extra == "dev"
+Requires-Dist: pytest-cov>=4.1.0; extra == "dev"
+Requires-Dist: black>=23.0.0; extra == "dev"
+Requires-Dist: ruff>=0.1.0; extra == "dev"
+Requires-Dist: mypy>=1.7.0; extra == "dev"
+
+# MCP Code Mode
+
+Prototype implementation for the Code Execution MCP Server with DSpy. This repo follows the implementation plan in `docs/implementation-plan.md`.
+
+## Toolchain Requirements
+
+- Python 3.11 (3.11.0 or newer, <3.13 recommended)
+- Node.js 20+ with `npx` available (needed for the reference MCP servers)
+- `pip` for installing the Python dependencies listed in `pyproject.toml` / `requirements*.txt`
+
+## Quick Start
+
+```bash
+python3.11 -m venv .venv
+source .venv/bin/activate
+pip install -r requirements-dev.txt
+pip install -e .
+```
+
+To keep the Node-based MCP servers current, run:
+
+```bash
+npm install -g npm@latest
+```
+
+The `mcp_servers.json` file enumerates the default MCP servers (filesystem, memory, fetch). Update this file to point at any additional servers you want available during experimentation.

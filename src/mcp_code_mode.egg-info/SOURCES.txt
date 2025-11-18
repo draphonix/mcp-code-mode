@@ -1,0 +1,10 @@
+README.md
+pyproject.toml
+src/mcp_code_mode/__init__.py
+src/mcp_code_mode/mcp_manager.py
+src/mcp_code_mode.egg-info/PKG-INFO
+src/mcp_code_mode.egg-info/SOURCES.txt
+src/mcp_code_mode.egg-info/dependency_links.txt
+src/mcp_code_mode.egg-info/requires.txt
+src/mcp_code_mode.egg-info/top_level.txt
+tests/test_mcp_manager_config.py
