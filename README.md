@@ -46,7 +46,11 @@ python -m mcp_code_mode.executor_server
 ```
 
 ### 4. Verification
-Verify your setup by running the debug executor script. This script simulates an MCP client, connects to the server, and runs a test task ("Find me the names from the memory with the memory tool") to ensure the agent and tools are working correctly.
+Verify your setup by running the debug executor script. This script simulates an MCP client, connects to the server, and runs a test task to ensure the agent and tools are working correctly.
+
+Before running the script:
+1. Configure the MCP servers you want to interact with in `mcp_servers.json`.
+2. Define the specific task you want the agent to perform by editing the `task` variable in `scripts/debug_executor.py`.
 
 ```bash
 python scripts/debug_executor.py
