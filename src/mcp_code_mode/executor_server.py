@@ -11,7 +11,11 @@ import dspy
 from fastmcp import Context, FastMCP
 
 from .agent import CodeExecutionAgent
-from .executor import ExecutionResult, SandboxedPythonExecutor
+from .executor import (
+    ExecutionResult,
+    SandboxedPythonExecutor,
+    LocalPythonExecutor,
+)
 from .mcp_integration import setup_mcp_tools
 from .mcp_manager import MCPServerManager
 from .sandbox_config import DEFAULT_SANDBOX_OPTIONS
@@ -90,10 +94,18 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[None]:
 # Initialize FastMCP with lifespan
 mcp = FastMCP("Code Executor Agent", lifespan=server_lifespan)
 
-# --- Phase 1: Dumb Executor (Kept for reference/direct use) ---
-
-# Default sandbox for direct execution (safe defaults)
-EXECUTOR = SandboxedPythonExecutor(options=DEFAULT_SANDBOX_OPTIONS)
+# --- Execution Backend Selection ---
+# Default to the local executor because Deno+Pyodide cannot perform HTTP
+# requests to the MCP tool bridge in some environments (WebAssembly stack
+# switching not supported). Users can force the sandbox by setting
+# MCP_EXECUTOR=pyodide.
+_EXECUTOR_BACKEND = os.environ.get("MCP_EXECUTOR", "local").lower()
+if _EXECUTOR_BACKEND in {"pyodide", "sandbox", "deno"}:
+    EXECUTOR = SandboxedPythonExecutor(options=DEFAULT_SANDBOX_OPTIONS)
+    LOGGER.info("Using Pyodide sandbox executor")
+else:
+    EXECUTOR = LocalPythonExecutor(max_output_chars=DEFAULT_SANDBOX_OPTIONS.max_output_chars)
+    LOGGER.info("Using local in-process executor (network-friendly)")
 
 DEFAULT_TIMEOUT = 30
 

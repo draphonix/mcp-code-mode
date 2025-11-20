@@ -63,7 +63,7 @@ async def main():
             
             # Define the task
             if tool_name == "run_agent":
-                args = {"task": "Generate 10 names and save into the memory"}
+                args = {"task": "Find me the names from the memory with the memory tool"}
             else:
                 # execute_code
                 args = {"code": "print('Hello from direct execution!')"}

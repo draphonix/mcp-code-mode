@@ -11,6 +11,8 @@ import asyncio
 import time
 import traceback
 from dataclasses import dataclass
+import contextlib
+import io
 from threading import Lock
 from typing import Any, Callable, Dict, Mapping, Optional, Sequence, TypedDict
 
@@ -217,8 +219,101 @@ class SandboxedPythonExecutor:
         return int((time.perf_counter() - started) * 1000)
 
 
+class LocalPythonExecutor:
+    """
+    In-process executor used as a fallback when the Pyodide sandbox cannot
+    perform network I/O (e.g., calling the MCP tool bridge from Pyodide
+    currently fails with stack-switching errors inside Deno).
+    """
+
+    def __init__(self, max_output_chars: int = 64_000) -> None:
+        self.max_output_chars = max_output_chars
+
+    async def run(
+        self,
+        code: str,
+        *,
+        timeout: float = 30,
+        variables: Mapping[str, Any] | None = None,
+    ) -> ExecutionResult:
+        if timeout <= 0:
+            raise ValueError("timeout must be greater than zero seconds")
+
+        started = time.perf_counter()
+        try:
+            stdout, stderr = await asyncio.wait_for(
+                asyncio.to_thread(self._execute_sync, code, variables),
+                timeout=timeout,
+            )
+            success = True
+        except asyncio.TimeoutError:
+            return ExecutionResult(
+                success=False,
+                stdout="",
+                stderr=f"Execution timed out after {timeout:.2f}s",
+                duration_ms=self._elapsed_ms(started),
+                diagnostics={"error_type": "TIMEOUT", "timeout_seconds": timeout},
+            )
+        except Exception as exc:  # pragma: no cover - convenience fallback
+            return ExecutionResult(
+                success=False,
+                stdout="",
+                stderr=str(exc),
+                duration_ms=self._elapsed_ms(started),
+                diagnostics={
+                    "error_type": exc.__class__.__name__,
+                    "traceback": traceback.format_exc(),
+                },
+            )
+
+        return ExecutionResult(
+            success=success,
+            stdout=self._truncate(stdout),
+            stderr=self._truncate(stderr),
+            duration_ms=self._elapsed_ms(started),
+            diagnostics=None,
+        )
+
+    def _execute_sync(
+        self,
+        code: str,
+        variables: Mapping[str, Any] | None,
+    ) -> tuple[str, str]:
+        env: Dict[str, Any] = {}
+        if variables:
+            env.update(variables)
+
+        out_buf = io.StringIO()
+        err_buf = io.StringIO()
+
+        try:
+            with contextlib.redirect_stdout(out_buf), contextlib.redirect_stderr(
+                err_buf
+            ):
+                exec(code, env, env)
+        except Exception:
+            err_buf.write(traceback.format_exc())
+            raise
+
+        return out_buf.getvalue(), err_buf.getvalue()
+
+    def _truncate(self, text: Any) -> str:
+        if text is None:
+            return ""
+        safe_text = str(text)
+        if self.max_output_chars and len(safe_text) > self.max_output_chars:
+            suffix = f"... [truncated {len(safe_text) - self.max_output_chars} chars]"
+            return safe_text[: self.max_output_chars] + suffix
+        return safe_text
+
+    @staticmethod
+    def _elapsed_ms(started: float) -> int:
+        return int((time.perf_counter() - started) * 1000)
+
+
 __all__ = [
     "ExecutionResult",
     "SandboxOptions",
     "SandboxedPythonExecutor",
+    "LocalPythonExecutor",
 ]

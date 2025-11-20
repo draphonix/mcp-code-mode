@@ -2,8 +2,8 @@
   "servers": {
     "filesystem": {
       "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/tmp"],
-      "description": "Local file system operations inside /tmp",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/themrb/Documents/personal/mcp-code-mode/docs"],
+      "description": "Local file system operations inside the repo",
       "env": {}
     },
     "memory": {
