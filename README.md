@@ -2,10 +2,6 @@
 
 Prototype implementation for the Code Execution MCP Server with DSpy. The "Code Execution with MCP" architecture combines the strengths of Large Language Models at code generation with the Model Context Protocol for tool integration. This system enables an AI agent to write Python code that runs in an isolated sandbox while seamlessly calling external MCP tools.
 
-## Project Status
-✅ **Phase 0-2 Completed**: Core executor, tool discovery, and formatting are implemented.
-🚧 **Phase 3 Active**: Building the DSpy Code Generation Agent.
-See [**Roadmap**](docs/ROADMAP.md) for details.
 
 ## Quick Start
 
@@ -49,6 +45,13 @@ Launch the Code Execution MCP server:
 python -m mcp_code_mode.executor_server
 ```
 
+### 4. Verification
+Verify your setup by running the debug executor script. This script simulates an MCP client, connects to the server, and runs a test task ("Find me the names from the memory with the memory tool") to ensure the agent and tools are working correctly.
+
+```bash
+python scripts/debug_executor.py
+```
+
 ## Development Commands
 
 | Command | Description |
@@ -58,15 +61,21 @@ python -m mcp_code_mode.executor_server
 | `black .` | Format the codebase |
 | `mypy src` | Type check the source |
 | `python scripts/test_dspy_sandbox.py` | Sanity check the sandbox |
+| `python scripts/debug_executor.py` | Integration test with mock client |
 
-## Sandbox Guardrails
+## Execution Environment & Guardrails
 
-The system enforces policies before code execution:
+By default, the system uses a **Local Python Executor** (`LocalPythonExecutor`) which runs code in the same process as the server. This is necessary because the strict Pyodide sandbox has limitations with network I/O, preventing it from calling back to other MCP tools in some environments.
+
+### Guardrails
+Even with the local executor, the system enforces policies before code execution:
 - **Limits**: 8k characters / 400 lines max.
 - **Imports**: Allowlist only (`json`, `math`, `re`, `datetime`, etc.).
 - **Tokens**: Disallows potentially dangerous tokens (`subprocess`, `exec`, `eval`).
 
 Violations return a `POLICY_VIOLATION` error.
+
+> **Note**: You can force the use of the Pyodide sandbox by setting `MCP_EXECUTOR=pyodide`, but this may break tool calls depending on your environment.
 
 ## Architecture
 
@@ -83,17 +92,17 @@ Violations return a `POLICY_VIOLATION` error.
 │  ┌──────────────────────────────────────────────────────┐  │
 │  │  @mcp.tool                                           │  │
 │  │  async def execute_code(code: str):                 │  │
-│  │      # 1. Execute in DSpy sandbox                   │  │
-│  │      result = await sandbox.run(code)               │  │
+│  │      # 1. Execute in Local Executor (default)       │  │
+│  │      result = await executor.run(code)              │  │
 │  │      return result                                   │  │
 │  └──────────────────────────────────────────────────────┘  │
 └────────────────────────┬────────────────────────────────────┘
                          │
                          ▼
           ┌──────────────────────────────┐
-          │    Sandbox Engine:           │
-          │  • DSpy PythonInterpreter   │
-          │    (Deno + Pyodide)         │
+          │    Execution Engine:         │
+          │  • LocalPythonExecutor       │
+          │    (or Pyodide Sandbox)      │
           └──────────────────────────────┘
 ```
 
@@ -110,7 +119,7 @@ Code Mode addresses these by leveraging what LLMs excel at: writing code. Rather
 ### Core Components
 
 1. **The Executor Server (FastMCP)** (`src/mcp_code_mode/executor_server.py`)
-   The server exposes an `execute_code` tool backed by DSpy's sandboxed Python interpreter. Uses `fastmcp` to handle the MCP protocol and `dspy` for execution.
+   The server exposes an `execute_code` tool backed by a Python executor (Local or Pyodide). Uses `fastmcp` to handle the MCP protocol and `dspy` for execution logic.
 
 2. **Configuration-Driven Discovery** (`mcp_servers.json`)
    The system uses `mcp_servers.json` to explicitly configure which MCP servers to connect to. Loaded by `src/mcp_code_mode/mcp_manager.py`.
@@ -143,16 +152,6 @@ Code Mode addresses these by leveraging what LLMs excel at: writing code. Rather
 6. Code Execution
    └─ Code runs in sandbox, calling actual tools via MCP
 ```
-
-### Design Evolution
-
-| Component | Original Research | Current Implementation | Reason |
-|-----------|-------------------|------------------------|--------|
-| **Sandbox** | Docker containers | DSpy PythonInterpreter | Simpler, lighter, WebAssembly-based |
-| **Bridge** | Flask/HTTP RPC | Direct MCP Connection | No custom server needed |
-| **Discovery**| Unclear | `mcp_servers.json` | Explicit configuration |
-| **Tools** | Auto-generated `mcp_tools.py` | `dspy.Tool.from_mcp_tool` | Native DSpy integration |
-
 ### Troubleshooting
 
 **Timeout Issues**:
