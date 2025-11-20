@@ -165,3 +165,4 @@ Ensure `mcp_servers.json` paths are correct and that you have run `npm install` 
 - [DSpy Documentation](https://dspy.ai)
 - [Model Context Protocol](https://modelcontextprotocol.io)
 - [FastMCP](https://github.com/jlowin/fastmcp)
+# mcp-code-mode
