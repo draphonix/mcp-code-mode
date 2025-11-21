@@ -1,6 +1,10 @@
 fastmcp>=2.0.0
 dspy-ai>=2.5.0
 mcp>=1.0.0
+aiohttp>=3.9.0
+httpx>=0.24.0
+python-dotenv>=1.0.0
+google-generativeai>=0.3.0
 
 [dev]
 pytest>=7.4.0

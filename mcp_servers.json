@@ -1,10 +1,10 @@
 {
   "servers": {
-    "filesystem": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/themrb/Documents/personal/mcp-code-mode/docs"],
-      "description": "Local file system operations inside the repo",
-      "env": {}
+    "fetch": {
+      "command": "uvx",
+      "args": [
+        "mcp-server-fetch"
+      ]
     },
     "memory": {
       "command": "npx",

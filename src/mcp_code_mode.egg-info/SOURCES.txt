@@ -7,6 +7,9 @@ src/mcp_code_mode/executor.py
 src/mcp_code_mode/executor_server.py
 src/mcp_code_mode/mcp_integration.py
 src/mcp_code_mode/mcp_manager.py
+src/mcp_code_mode/policies.py
+src/mcp_code_mode/sandbox_config.py
+src/mcp_code_mode/tool_bridge.py
 src/mcp_code_mode/tool_formatter.py
 src/mcp_code_mode/validate_agent.py
 src/mcp_code_mode.egg-info/PKG-INFO
@@ -14,8 +17,10 @@ src/mcp_code_mode.egg-info/SOURCES.txt
 src/mcp_code_mode.egg-info/dependency_links.txt
 src/mcp_code_mode.egg-info/requires.txt
 src/mcp_code_mode.egg-info/top_level.txt
-tests/test_agent_injection.py
+tests/test_agent.py
 tests/test_executor.py
 tests/test_mcp_integration.py
 tests/test_mcp_manager_config.py
+tests/test_policies.py
+tests/test_tool_bridge_runtime.py
 tests/test_tool_formatter.py

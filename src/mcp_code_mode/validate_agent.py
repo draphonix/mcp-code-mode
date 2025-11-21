@@ -8,6 +8,7 @@ This script validates that the agent can:
 import asyncio
 import logging
 import sys
+import os
 from typing import Any, Dict, List
 
 # Configure logging
@@ -83,8 +84,21 @@ async def validate_agent():
     try:
         if not dspy.settings.lm:
             LOGGER.warning("No DSpy LM configured. Attempting to configure default...")
-            lm = dspy.LM("openai/gpt-4o-mini")
-            dspy.configure(lm=lm)
+            
+            openai_key = os.environ.get("OPENAI_API_KEY")
+            openai_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+            openai_model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
+            
+            if openai_key:
+                # Ensure we use the openai provider prefix for LiteLLM
+                model = openai_model if openai_model.startswith("openai/") else f"openai/{openai_model}"
+                lm = dspy.LM(model, api_key=openai_key, api_base=openai_base)
+                dspy.configure(lm=lm)
+                LOGGER.info(f"DSpy configured with OpenAI ({openai_model}) at {openai_base}")
+            else:
+                # Fallback to default
+                lm = dspy.LM("openai/gpt-4o-mini")
+                dspy.configure(lm=lm)
     except Exception as e:
         LOGGER.error("Failed to configure default LM: %s", e)
         LOGGER.error("Please ensure OPENAI_API_KEY is set or configure DSpy manually.")

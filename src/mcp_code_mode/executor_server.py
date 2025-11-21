@@ -45,12 +45,15 @@ async def server_lifespan(server: FastMCP) -> AsyncIterator[None]:
     # We default to gpt-4o-mini if available, or let dspy auto-configure if env vars are set
     gemini_key = os.environ.get("GEMINI_API_KEY")
     openai_key = os.environ.get("OPENAI_API_KEY")
+    openai_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+    openai_model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
     # Prefer OpenAI for speed/reliability if available, then Gemini
     if openai_key:
-        lm = dspy.LM("openai/gpt-4o-mini", api_key=openai_key)
+        # Ensure we use the openai provider prefix for LiteLLM
+        lm = dspy.LM(openai_model, api_key=openai_key, api_base=openai_base)
         dspy.configure(lm=lm)
-        print("✅ DSpy configured with OpenAI (gpt-4o-mini)", file=sys.stderr)
+        print(f"✅ DSpy configured with OpenAI ({openai_model}) at {openai_base}", file=sys.stderr)
     elif gemini_key:
         # Use dspy.LM with gemini/ prefix which uses litellm under the hood
         try:
