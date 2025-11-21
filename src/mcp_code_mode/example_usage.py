@@ -42,8 +42,17 @@ async def main():
     # 1. Configure DSpy
     gemini_key = os.environ.get("GEMINI_API_KEY")
     openai_key = os.environ.get("OPENAI_API_KEY")
+    openai_base = os.environ.get("OPENAI_API_BASE", "https://api.openai.com/v1")
+    openai_model = os.environ.get("OPENAI_MODEL", "gpt-4o-mini")
 
-    if gemini_key:
+    # Prefer OpenAI for speed/reliability if available, then Gemini
+    if openai_key:
+        # Ensure we use the openai provider prefix for LiteLLM
+        model = openai_model if openai_model.startswith("openai/") else f"openai/{openai_model}"
+        lm = dspy.LM(model, api_key=openai_key, api_base=openai_base)
+        dspy.configure(lm=lm)
+        print(f"✅ DSpy configured with OpenAI ({openai_model}){' at ' + openai_base if openai_base else ''}")
+    elif gemini_key:
         # Use dspy.LM with gemini/ prefix which uses litellm under the hood
         try:
             # Note: dspy.Google is deprecated/removed in newer versions, use dspy.LM
@@ -53,10 +62,6 @@ async def main():
         except Exception as e:
             print(f"❌ Failed to configure Gemini: {e}")
             return
-    elif openai_key:
-        lm = dspy.LM("openai/gpt-4o-mini", api_key=openai_key)
-        dspy.configure(lm=lm)
-        print("✅ DSpy configured with OpenAI (gpt-4o-mini)")
     else:
         print("❌ No API key found. Please set GEMINI_API_KEY or OPENAI_API_KEY.")
         return
