@@ -4,4 +4,6 @@ fastmcp>=2.0.0
 google-generativeai>=0.3.0
 httpx>=0.24.0
 mcp>=1.0.0
+gradio>=4.0.0
+openai
 python-dotenv>=1.0.0

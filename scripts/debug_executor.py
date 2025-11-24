@@ -63,7 +63,7 @@ async def main():
             
             # Define the task
             if tool_name == "run_agent":
-                args = {"task": "Find me the names from the memory with the memory tool"}
+                args = {"task": "Lets use the code-executor mcp server to look up for information on how to create a gradio mcp server with the help of exa and context7 tools. Finally, use the right tool to write an md file as output."}
             else:
                 # execute_code
                 args = {"code": "print('Hello from direct execution!')"}

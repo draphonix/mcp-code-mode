@@ -10,6 +10,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Dict, List, Optional
@@ -96,7 +97,10 @@ class ServerConnection:
 class MCPServerManager:
     """Loads MCP server configs and keeps their sessions alive."""
 
-    def __init__(self, config_path: str | Path = "mcp_servers.json") -> None:
+    def __init__(self, config_path: str | Path | None = None) -> None:
+        # If no config path provided, check env var, then use default
+        if config_path is None:
+            config_path = os.environ.get("MCP_SERVERS_CONFIG", "mcp_servers.json")
         self.config_path = Path(config_path)
         self.config: Dict[str, Any] = {}
         self.servers: Dict[str, ServerConnection] = {}
@@ -149,10 +153,14 @@ class MCPServerManager:
             LOGGER.debug("Server %s already connected", name)
             return
 
+        # Inherit system environment and overlay config env
+        env = dict(os.environ)
+        env.update(cfg.get("env", {}))
+
         params = StdioServerParameters(
             command=cfg["command"],
             args=cfg.get("args", []),
-            env=cfg.get("env", {}),
+            env=env,
         )
 
         connection = ServerConnection(

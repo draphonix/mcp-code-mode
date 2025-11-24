@@ -4,7 +4,7 @@ from __future__ import annotations
 import re
 from typing import Callable, Tuple
 
-MAX_CHARS = 8000
+MAX_CHARS = 18000
 MAX_LINES = 400
 
 ALLOWED_IMPORTS = {
